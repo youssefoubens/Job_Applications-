@@ -3,7 +3,7 @@ import { ResumeUpload } from '@/components/ResumeUpload'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function GeneratePage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data } = await supabase.auth.getUser()
   
   // If data.user is undefined, the middleware will handle the redirect

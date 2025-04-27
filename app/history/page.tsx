@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { formatDistanceToNow } from '@/lib/utils'
 
 export default async function HistoryPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: sessionData } = await supabase.auth.getUser()
   
   if (!sessionData.user) {

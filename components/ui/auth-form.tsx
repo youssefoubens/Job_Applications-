@@ -19,25 +19,39 @@ export function AuthForm({ type }: { type: 'login' | 'signup' }) {
     setError('')
 
     try {
-      const { error, data } = type === 'login'
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password })
-
-      if (error) throw error
-      
-      // Check if we have a session
-      if (data?.session) {
-        // Force a full page refresh to /generate
-        window.location.href = '/generate'
-      } else if (type === 'signup') {
-        // Handle signup success - may not have immediate session if email confirmation is required
-        setError('Account created! Please check your email for confirmation.')
-      } else {
-        // This shouldn't happen for login, but just in case
-        router.push('/generate')
+      if (type === 'login') {
+        const { error, data } = await supabase.auth.signInWithPassword({ 
+          email, 
+          password,
+        })
+        
+        if (error) throw error
+        
+        // Successful login - use router.refresh() first to ensure 
+        // the session is updated before navigation
         router.refresh()
+        
+        // Short timeout to ensure session is updated before navigation
+        setTimeout(() => {
+          window.location.href = '/generate'
+        }, 100)
+      } else {
+        // Signup flow
+        const { error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          }
+        })
+        
+        if (error) throw error
+        
+        // Handle signup success
+        setError('Account created! Please check your email for confirmation.')
       }
     } catch (err: unknown) {
+      console.error('Auth error:', err)
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
