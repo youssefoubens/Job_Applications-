@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import { headers } from 'next/headers'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -22,16 +23,23 @@ export const metadata: Metadata = {
   keywords: ['job application', 'resume', 'ai', 'cover letter', 'job search'],
 }
 
+// Disable client-side data revalidation to prevent refresh loops
+export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // Revalidate at most once per hour
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Force headers read to improve caching - prevents redundant revalidation
+  headers()
+  
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased min-h-screen`}>
         <SupabaseProvider>
-          <div className="flex min-h-screen flex-col">
+          <div className="relative flex min-h-screen flex-col bg-background">
             <Navbar />
             <main className="flex-1">
               {children}

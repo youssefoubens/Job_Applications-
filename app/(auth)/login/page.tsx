@@ -1,3 +1,4 @@
+// app/login/page.tsx
 import { AuthForm } from '@/components/ui/auth-form'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
