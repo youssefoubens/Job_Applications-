@@ -1,0 +1,16 @@
+/* Main Style Entry Point */
+
+/* Import theme variables first */
+@import 'theme.css';
+
+/* Import base styles and common utilities */
+@import 'main.css';
+
+/* Import animations */
+@import 'animations.css';
+
+/* Import component styles */
+@import 'components.css';
+
+/* Import page-specific styles */
+@import 'pages.css'; 

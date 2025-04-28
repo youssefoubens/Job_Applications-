@@ -5,18 +5,35 @@ import { redirect } from 'next/navigation'
 export default async function PreviewPage({
   searchParams,
 }: {
-  searchParams: { applicationId: string }
+  searchParams?: { [key: string]: string | string[] | undefined }
 }) {
+  // Handle applicationId properly
+  const applicationId = typeof searchParams?.applicationId === 'string' 
+    ? searchParams.applicationId 
+    : Array.isArray(searchParams?.applicationId) 
+      ? searchParams.applicationId[0] 
+      : '';
+
+  // Redirect if no applicationId
+  if (!applicationId) {
+    redirect('/');
+  }
+
   const supabase = await createClient()
   const { data } = await supabase.auth.getUser()
-  if (!data.user) redirect('/login')
+  
+  // In our localStorage version, we don't strictly need auth
+  // Let's provide a fallback userId if auth fails
+  const userId = data.user?.id || 'local-user';
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <EmailPreview 
-        applicationId={searchParams.applicationId}
-        userId={data.user.id}
-      />
+    <div className="preview-container animate-fade-in-up">
+      <div className="preview-document">
+        <EmailPreview 
+          applicationId={applicationId}
+          userId={userId}
+        />
+      </div>
     </div>
   )
 }

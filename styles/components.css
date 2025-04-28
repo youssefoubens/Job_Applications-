@@ -1,0 +1,313 @@
+/* Component Styles */
+
+/* Buttons with enhanced styling */
+.btn {
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.3) 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform 0.5s, opacity 0.8s;
+}
+
+.btn:active::after {
+  transform: scale(0, 0);
+  opacity: 0.3;
+  transition: 0s;
+}
+
+/* Primary button with gradient hover */
+.btn-primary {
+  position: relative;
+  z-index: 1;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    hsl(var(--primary-500)) 0%, 
+    hsl(var(--primary-600)) 100%);
+  z-index: -1;
+  transition: opacity var(--transition-normal);
+  border-radius: inherit;
+  opacity: 0;
+}
+
+.btn-primary:hover::before {
+  opacity: 1;
+}
+
+/* Cards with enhanced styling */
+.card {
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  overflow: hidden;
+}
+
+.card-interactive {
+  cursor: pointer;
+}
+
+.card-interactive:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.card-border {
+  position: relative;
+}
+
+.card-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, 
+    hsl(var(--primary-400)) 0%, 
+    hsl(var(--secondary-400)) 100%);
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Form elements with enhanced styling */
+.input-wrapper {
+  position: relative;
+  margin-bottom: var(--spacing-4);
+}
+
+.input-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: var(--spacing-3);
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+
+.input-icon-right {
+  left: auto;
+  right: var(--spacing-3);
+}
+
+.input-with-icon {
+  padding-left: var(--spacing-8);
+}
+
+.input-with-icon-right {
+  padding-right: var(--spacing-8);
+}
+
+.input-animated-label {
+  position: relative;
+}
+
+.input-animated-label label {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  transition: all var(--transition-normal);
+  pointer-events: none;
+  color: hsl(var(--muted-foreground));
+  padding: 0 var(--spacing-1);
+}
+
+.input-animated-label input:focus + label,
+.input-animated-label input:not(:placeholder-shown) + label {
+  top: 0;
+  transform: translateY(-50%);
+  background-color: hsl(var(--background));
+  font-size: var(--font-xs);
+  color: hsl(var(--primary));
+}
+
+/* Badge styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0 var(--spacing-2);
+  height: 1.5rem;
+  font-size: var(--font-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.badge-primary {
+  background-color: hsl(var(--primary-100));
+  color: hsl(var(--primary-800));
+}
+
+.badge-secondary {
+  background-color: hsl(var(--secondary-100));
+  color: hsl(var(--secondary-800));
+}
+
+.badge-success {
+  background-color: rgb(240, 253, 244);
+  color: rgb(20, 83, 45);
+}
+
+.badge-danger {
+  background-color: rgb(254, 242, 242);
+  color: rgb(153, 27, 27);
+}
+
+.badge-warning {
+  background-color: rgb(255, 251, 235);
+  color: rgb(146, 64, 14);
+}
+
+.badge-info {
+  background-color: rgb(240, 249, 255);
+  color: rgb(12, 74, 110);
+}
+
+/* Avatar component */
+.avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar-sm {
+  width: 2rem;
+  height: 2rem;
+}
+
+.avatar-md {
+  width: 3rem;
+  height: 3rem;
+}
+
+.avatar-lg {
+  width: 4rem;
+  height: 4rem;
+}
+
+.avatar-placeholder {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+}
+
+/* Tooltip component */
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-content {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border-radius: var(--radius);
+  white-space: nowrap;
+  font-size: var(--font-xs);
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-normal);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  z-index: var(--z-tooltip);
+  pointer-events: none;
+}
+
+.tooltip:hover .tooltip-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-8px);
+}
+
+/* Loader component */
+.loader {
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Switch component */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 2.5rem;
+  height: 1.5rem;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: hsl(var(--muted));
+  transition: var(--transition-normal);
+  border-radius: 9999px;
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 1rem;
+  width: 1rem;
+  left: 0.25rem;
+  bottom: 0.25rem;
+  background-color: white;
+  transition: var(--transition-normal);
+  border-radius: 50%;
+}
+
+.switch input:checked + .switch-slider {
+  background-color: hsl(var(--primary));
+}
+
+.switch input:checked + .switch-slider:before {
+  transform: translateX(1rem);
+} 

@@ -4,11 +4,13 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { MailCheckIcon } from 'lucide-react'
 
 export default function VerifyEmailPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [message, setMessage] = useState('Verifying your email...')
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
 
   useEffect(() => {
     const verifyEmail = async () => {
@@ -24,9 +26,13 @@ export default function VerifyEmailPage() {
 
         if (error) {
           setMessage('Verification failed. Please try again.')
+          setStatus('error')
         } else {
           setMessage('Email verified successfully! Redirecting...')
-          router.push('/generate')
+          setStatus('success')
+          setTimeout(() => {
+            router.push('/generate')
+          }, 2000)
         }
       }
     }
@@ -35,11 +41,21 @@ export default function VerifyEmailPage() {
   }, [searchParams, router])
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md text-center">
-        <h2 className="text-2xl font-bold mb-4">Email Verification</h2>
-        <p>{message}</p>
+    <div className="verify-email animate-fade-in">
+      <div className="verify-email-icon">
+        <MailCheckIcon size={48} className={status === 'success' ? 'animate-bounce text-success' : status === 'error' ? 'animate-shake text-destructive' : 'animate-pulse'} />
       </div>
+      <h2 className="verify-email-title">{status === 'success' ? 'Email Verified!' : status === 'error' ? 'Verification Failed' : 'Email Verification'}</h2>
+      <p className="verify-email-text">{message}</p>
+      
+      {status === 'error' && (
+        <button 
+          className="btn btn-primary btn-hover mt-4"
+          onClick={() => router.push('/(auth)/login')}
+        >
+          Back to Login
+        </button>
+      )}
     </div>
   )
 }

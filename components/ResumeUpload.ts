@@ -1,16 +1,10 @@
 'use client'
 
-import React from 'react'
-import { Button } from '../components/ui/button'
-import { createClient } from '../lib/supabase/client'
+import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
 import { toast } from 'sonner'
-
-declare global {
-  interface Window {
-    pdfjsLib: any
-  }
-}
+import { PDFExtract } from 'pdf.js-extract'
 
 export function ResumeUpload({ userId }: { userId: string }) {
   const [file, setFile] = useState<File | null>(null)
@@ -21,30 +15,26 @@ export function ResumeUpload({ userId }: { userId: string }) {
   const supabase = createClient()
 
   const extractTextFromPDF = async (file: File): Promise<string> => {
-    // Load PDF.js from CDN
-    if (!window.pdfjsLib) {
-      const script = document.createElement('script')
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js'
-      script.async = true
-      document.body.appendChild(script)
-      
-      await new Promise((resolve) => {
-        script.onload = resolve
-      })
-    }
-
     const arrayBuffer = await file.arrayBuffer()
-    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise
-    let fullText = ''
-
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i)
-      const textContent = await page.getTextContent()
-      const pageText = textContent.items.map((item: any) => item.str).join(' ')
-      fullText += pageText + '\n'
+    const pdfExtract = new PDFExtract()
+    const data = await pdfExtract.extractBuffer(arrayBuffer)
+    
+    if (!data || !data.pages) {
+      throw new Error('Failed to extract text from PDF')
     }
-
-    return fullText
+    
+    // Extract text from all pages
+    let text = ''
+    for (const page of data.pages) {
+      for (const content of page.content) {
+        if (content.str) {
+          text += content.str + ' '
+        }
+      }
+      text += '\n'
+    }
+    
+    return text.trim()
   }
 
   const handleUpload = async () => {

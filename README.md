@@ -1,31 +1,50 @@
-# LinkedIn Application Generator
+# Job Application Generator
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+A web application that helps users create tailored job applications by analyzing job descriptions and resumes.
 
-A full-stack web application to help users generate and send personalized job application emails based on their résumé and LinkedIn job posts, powered by OpenAI and Supabase.
+## Features
 
----
+- Upload your resume
+- Input job descriptions
+- Generate tailored application emails using OpenAI
+- Copy to clipboard functionality
+- No database required (uses localStorage)
 
-## ✨ Features
+## Setup
 
-- User authentication (Supabase Auth)
-- Upload and store résumés (Supabase Storage)
-- Paste LinkedIn job posts
-- Generate personalized emails using OpenAI API
-- Edit and send emails via Nodemailer (SMTP)
-- Save application history per user
-- Responsive and minimal UI with TailwindCSS
+1. Clone the repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Create a `.env.local` file in the root directory with the following:
+   ```
+   OPENAI_API_KEY=your_openai_api_key_here
+   ```
+   Replace `your_openai_api_key_here` with your actual OpenAI API key.
 
----
+4. Run the development server:
+   ```
+   npm run dev
+   ```
 
-## 🚀 Getting Started
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-First, clone the repository and install dependencies:
+## Environment Variables
 
-```bash
-git clone your-repo-url
-cd your-project
-npm install
-# or
-yarn install
-```
+- `OPENAI_API_KEY`: Required for generating application emails using the OpenAI API.
+
+## Using the Application
+
+1. Upload your resume on the home page
+2. Enter the job description on the job post page
+3. Click "Generate Application" to create a tailored application email
+4. Copy the generated email or regenerate as needed
+
+## Technologies Used
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- OpenAI API

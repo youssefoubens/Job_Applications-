@@ -2,162 +2,132 @@
 
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { generateEmail } from '@/lib/openai'
-import { extractTextFromPdf } from '@/lib/pdf-parser'
-import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
 
-export function EmailPreview({
-  applicationId,
-  userId
-}: {
-  applicationId: string
-  userId: string
-}) {
+export function EmailPreview({ applicationId, userId }: { applicationId: string, userId: string }) {
   const [emailContent, setEmailContent] = useState('')
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [isSending, setIsSending] = useState(false)
-  const router = useRouter()
-  const supabase = createClient()
+  const [isGenerating, setIsGenerating] = useState(true)
+  const [loadingError, setLoadingError] = useState<string | null>(null)
+  const [resumeSize, setResumeSize] = useState<number>(0)
+
+  // Personal details state (automatically populated by AI)
+  const [fullName, setFullName] = useState<string>('')
+  const [email, setEmail] = useState<string>('')
+  const [phone, setPhone] = useState<string>('')
 
   useEffect(() => {
-    const fetchApplication = async () => {
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*')
-        .eq('id', applicationId)
-        .single()
+    const savedResumeData = localStorage.getItem('resume_text')
+    const jobDescription = localStorage.getItem('current_job_post')
 
-      if (error) {
-        toast.error('Failed to load application')
-        console.error(error)
-        return
-      }
-
-      if (data.generated_email) {
-        setEmailContent(data.generated_email)
-      } else {
-        generateEmailContent(data)
-      }
+    if (!jobDescription) {
+      toast.error('Job description not found. Please submit a job post first.')
+      return
     }
 
-    fetchApplication()
+    if (!savedResumeData) {
+      toast.error('Resume data not found. Please upload your resume first.')
+      return
+    }
+
+    generateEmailWithAI(savedResumeData, jobDescription)
   }, [applicationId])
 
-  const generateEmailContent = async (application: any) => {
+  const generateEmailWithAI = async (resumeData: string, jobDescription: string) => {
     setIsGenerating(true)
+    setLoadingError(null)
+
     try {
-      // 1. Get resume text
-      const resumeText = await extractTextFromPdf(application.resume_url)
+      // Approximate token size calculation for monitoring
+      setResumeSize(resumeData.length)
 
-      // 2. Generate email with OpenAI
-      const generatedEmail = await generateEmail(
-        resumeText,
-        application.linkedin_post || ''
-      )
+      const response = await fetch('/api/generate-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobDescription, resumeData }),
+      })
 
-      // 3. Update in database
-      const { error } = await supabase
-        .from('applications')
-        .update({ generated_email: generatedEmail })
-        .eq('id', applicationId)
+      const data = await response.json()
 
-      if (error) throw error
+      if (!response.ok || !data.emailContent) {
+        throw new Error(data.message || 'Failed to generate email')
+      }
 
-      setEmailContent(generatedEmail)
-      toast.success('Email generated successfully!')
+      // Set email content
+      setEmailContent(data.emailContent)
+
+      // Extract personal details from AI response
+      if (data.personalDetails) {
+        setFullName(data.personalDetails.name || '')
+        setEmail(data.personalDetails.email || '')
+        setPhone(data.personalDetails.phone || '')
+      }
+
+      // Save the generated email
+      localStorage.setItem('generated_email', data.emailContent)
+
     } catch (error) {
-      toast.error('Failed to generate email')
-      console.error(error)
+      setLoadingError(error instanceof Error ? error.message : 'Failed to generate email')
+    
     } finally {
       setIsGenerating(false)
     }
   }
 
-  const handleSendEmail = async () => {
-    if (!emailContent.trim()) {
-      toast.error('Email content cannot be empty')
-      return
-    }
+  
 
-    setIsSending(true)
-    try {
-      // 1. Update final email in database
-      const { error } = await supabase
-        .from('applications')
-        .update({ final_email: emailContent })
-        .eq('id', applicationId)
-
-      if (error) throw error
-
-      // 2. Send email via API
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          applicationId,
-          emailContent
-        })
-      })
-
-      if (!response.ok) throw new Error('Failed to send email')
-
-      router.push('/success')
-      toast.success('Application sent successfully!')
-    } catch (error) {
-      toast.error('Failed to send application')
-      console.error(error)
-    } finally {
-      setIsSending(false)
+  const handleRegenerate = () => {
+    if (resumeSize > 100000) toast.warning('Your resume may be too large.')
+    const resumeData = localStorage.getItem('resume_text') || ''
+    const jobDescription = localStorage.getItem('current_job_post') || ''
+    if (resumeData && jobDescription) {
+      generateEmailWithAI(resumeData, jobDescription)
     }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Application Email</h2>
-        <Button
-          variant="outline"
-          onClick={() => window.history.back()}
-        >
-          Back
-        </Button>
+    <div className="space-y-10">
+      <div className="flex justify-between">
+        <h2 className="text-xl font-bold">Application Email</h2>
+        <Button onClick={() => window.history.back()}>Back</Button>
       </div>
-
-      <div className="space-y-4">
-        <Textarea
-          value={emailContent}
-          onChange={(e) => setEmailContent(e.target.value)}
-          className="min-h-[300px] font-mono text-sm"
-          placeholder="Generating email content..."
-        />
-        
-        <div className="flex justify-end space-x-4">
-          <Button
-            variant="secondary"
-            onClick={async () => {
-              const { data } = await supabase
-                .from('applications')
-                .select('*')
-                .eq('id', applicationId)
-                .single()
-              
-              if (data) generateEmailContent(data)
-            }}
-            disabled={isGenerating}
-          >
-            {isGenerating ? 'Regenerating...' : 'Regenerate'}
-          </Button>
-          
-          <Button
-            onClick={handleSendEmail}
-            disabled={isSending || isGenerating}
-          >
-            {isSending ? 'Sending...' : 'Send Application'}
-          </Button>
+  
+      {isGenerating && (
+        <div className="text-center py-8">
+          <Loader2 className="animate-spin mx-auto" />
+          <p>Generating email...</p>
         </div>
+      )}
+  
+      {loadingError && (
+        <div className="bg-red-50 text-red-800 p-3 rounded">
+          <p>Error: {loadingError}</p>
+        </div>
+      )}
+  
+      <Textarea
+        value={emailContent}
+        onChange={(e) => setEmailContent(e.target.value)}
+        className="min-h-[500px]"
+        disabled={isGenerating}
+      />
+      
+      <div className="flex gap-2 justify-end">
+        <Button
+          onClick={() => navigator.clipboard.writeText(emailContent)}
+          disabled={!emailContent}
+        >
+          Copy
+        </Button>
+        
+        <Button
+          onClick={handleRegenerate}
+          disabled={isGenerating}
+          variant="outline"
+        >
+          Regenerate
+        </Button>
       </div>
     </div>
   )
